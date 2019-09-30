@@ -16,10 +16,10 @@ public class Cidades {
 	private String capital;
 	
 	@CsvBindByName(column = "lon")
-	private int lon;
+	private String lon;
 	
 	@CsvBindByName(column = "lat")
-	private int lat;
+	private String lat;
 	
 	@CsvBindByName(column = "no_accents")
 	private String noaccents;
@@ -39,8 +39,8 @@ public class Cidades {
 			           String uf, 
 			           String name, 
 			           String capital, 
-			           int lon, 
-			           int lat,
+			           String lon, 
+			           String lat,
 			           String noaccents,
 			           String alternativenames,
 			           String microregion,
@@ -92,19 +92,19 @@ public class Cidades {
 		this.capital = capital;
 	}
 
-	public int getLon() {
+	public String getLon() {
 		return lon;
 	}
 
-	public void setLon(int lon) {
+	public void setLon(String lon) {
 		this.lon = lon;
 	}
 
-	public int getLat() {
+	public String getLat() {
 		return lat;
 	}
 
-	public void setLat(int lat) {
+	public void setLat(String lat) {
 		this.lat = lat;
 	}
 

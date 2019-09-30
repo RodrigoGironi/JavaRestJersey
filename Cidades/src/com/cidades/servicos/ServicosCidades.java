@@ -4,16 +4,19 @@ import java.io.File;
 import java.lang.reflect.Type;
 import java.util.List;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import com.cidades.controles.ControleCidade;
 import com.cidades.obj.Cidades;
 import com.cidades.obj.ObjetoAuxiliar;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.Encoded;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
@@ -54,7 +57,7 @@ public class ServicosCidades {
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response CapitaisOrdenadasPorNome() {
 		try
-		{
+		{		    
 			Type listType = new TypeToken<List<Cidades>>() {}.getType();							
 			return Response.ok(gson.toJson( ctr.getCapitaisOrdenadaPorNomes(), listType)).build();
 		
@@ -146,10 +149,34 @@ public class ServicosCidades {
 	@Path("/cidadeinsert")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response CidadeInsert(@QueryParam("cidade") Cidades city) {
-		
+	public Response CidadeInsert(@QueryParam("ibgeid") int ibgeid, 
+								 @QueryParam("uf") String uf,
+								 @QueryParam("name") String nome,
+								 @QueryParam("capital") String capital,
+								 @QueryParam("lon") String lon,
+								 @QueryParam("lat") String lat,
+								 @QueryParam("noaccents") String noaccents,
+								 @QueryParam("alternativenames") String alternativenames,
+								 @QueryParam("microregion") String microregion,
+								 @QueryParam("mesoregion") String mesoregion) {
+		//
 		try
-		{										
+		{	
+			
+			Cidades city = new Cidades();
+			city.setIbgeid(ibgeid);
+			city.setUf(uf);
+			city.setName(nome);
+			city.setCapital(capital);
+			city.setLon(lon);
+			city.setLat(lat);
+			city.setNoaccents(noaccents);
+			city.setAlternativenames(alternativenames);
+			city.setMicroregion(microregion);
+			city.setMesoregion(mesoregion);
+			
+						
+			//Cidades city = gson.fromJson(json_cidade,Cidades.class);
 			return Response.ok(gson.toJson( ctr.InserirCidade(city), Boolean.class)).build();		
 		}
 		catch(Exception e)
@@ -259,6 +286,25 @@ public class ServicosCidades {
 		{
 			Type listType = new TypeToken<List<Cidades>>() {}.getType();							
 			return Response.ok(gson.toJson( ctr.CidadesDistantes(), listType)).build();
+		
+		}
+		catch(Exception e)
+		{
+			System.out.println(e.toString());
+			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		}
+	}
+	
+	@GET
+	@Path("/listauf")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response ListaEstados() {
+		
+		try
+		{
+			Type listType = new TypeToken<List<ObjetoAuxiliar>>() {}.getType();							
+			return Response.ok(gson.toJson( ctr.ListaEstados(), listType)).build();
 		
 		}
 		catch(Exception e)

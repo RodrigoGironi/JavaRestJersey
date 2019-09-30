@@ -16,6 +16,7 @@ import com.opencsv.bean.CsvToBeanBuilder;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.LineNumberReader;
 import java.io.Reader;
 
 
@@ -40,12 +41,43 @@ public class ControleCidade {
 	public boolean LerArquivoCsv(File flcsv) throws IOException, ClassNotFoundException, SQLException {
 		
 		boolean resp = false;
+		String line = "";
+		String[] dados;
+		int countline = 0;
+		lCidades = new ArrayList<Cidades>();
 		Reader reader = new FileReader(flcsv);
-        CsvToBean<Cidades> csvToBean = new CsvToBeanBuilder<Cidades>(reader).withType(Cidades.class).build();
+		LineNumberReader lineReader = new LineNumberReader(reader);
+		do {
+			line = lineReader.readLine();
+			if (line != null) { 
+				System.out.println(line);
+				dados = line.split(",");
+			
+				if(countline != 0) {
+				int ibg = Integer.parseInt(dados[0].toString().isEmpty() ? "0" : dados[0].toString());
+			    lCidades.add( new Cidades(ibg, 
+		                      			  dados[1].toString(),
+		                      			  dados[2].toString(),
+		                      			  dados[3].toString(),
+		                      			  dados[4].toString(),
+		                      			  dados[5].toString(),
+		                      			  dados[6].toString(),
+		                      			  dados[7].toString(),
+		                      			  dados[8].toString(),
+		                      			  dados[9].toString()));					
+				}
+				
+				dados = null;
+				countline++;
+			}
+			
+		}while (line != null);
+		
+        //CsvToBean<Cidades> csvToBean = new CsvToBeanBuilder<Cidades>(reader).withType(Cidades.class).build();
+        
+        //List<Cidades> cidade = csvToBean.parse();
 
-        List<Cidades> cidade = csvToBean.parse();
-
-        for (Cidades city : cidade)
+        for (Cidades city : lCidades)
         	resp = InserirCidade(city);
 		
         return resp;
@@ -55,7 +87,7 @@ public class ControleCidade {
 	public List<Cidades> getCapitaisOrdenadaPorNomes() throws ClassNotFoundException, SQLException{
 		
 		con = db.Conectar();
-		String sql = "SELECT * FROM CIDADES WHERE CAPITAL = 'TRUE' ORDER BY NAME";
+		String sql = "SELECT * FROM CIDADES WHERE UPPER(CAPITAL) = 'TRUE' ORDER BY NAME";
 		pstmt = con.prepareStatement(sql);
 		rs = pstmt.executeQuery();
 		lCidades = new ArrayList<Cidades>();
@@ -64,8 +96,8 @@ public class ControleCidade {
 					                      rs.getString("uf"),
 					                      rs.getString("name"),
 					                      rs.getString("capital"),
-					                      rs.getInt("lon"),
-					                      rs.getInt("lat"),
+					                      rs.getString("lon"),
+					                      rs.getString("lat"),
 					                      rs.getString("no_accents"),
 					                      rs.getString("alternative_names"),
 					                      rs.getString("microregion"),
@@ -193,8 +225,8 @@ public class ControleCidade {
 					                      rs.getString("uf"),
 					                      rs.getString("name"),
 					                      rs.getString("capital"),
-					                      rs.getInt("lon"),
-					                      rs.getInt("lat"),
+					                      rs.getString("lon"),
+					                      rs.getString("lat"),
 					                      rs.getString("no_accents"),
 					                      rs.getString("alternative_names"),
 					                      rs.getString("microregion"),
@@ -216,8 +248,8 @@ public class ControleCidade {
 					                      rs.getString("uf"),
 					                      rs.getString("name"),
 					                      rs.getString("capital"),
-					                      rs.getInt("lon"),
-					                      rs.getInt("lat"),
+					                      rs.getString("lon"),
+					                      rs.getString("lat"),
 					                      rs.getString("no_accents"),
 					                      rs.getString("alternative_names"),
 					                      rs.getString("microregion"),
@@ -232,18 +264,19 @@ public class ControleCidade {
 		
 		con = db.Conectar();
 		String sql = "INSERT INTO CIDADES (IBGE_ID, UF, NAME, CAPITAL, LON, LAT, NO_ACCENTS, ALTERNATIVE_NAMES, MICROREGION, MESOREGION) " + 
-					 "VALUES (?, '?', '?', '?', ?, ?, '?', '?', '?', '?'); ";
+					 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 		pstmt = con.prepareStatement(sql);
 		pstmt.setInt(1, city.getIbgeid());
 		pstmt.setString(2, city.getUf());
 		pstmt.setString(3, city.getName());
 		pstmt.setString(4, city.getCapital());
-		pstmt.setInt(5, city.getLon());
-		pstmt.setInt(6, city.getLat());
+		pstmt.setString(5, city.getLon());
+		pstmt.setString(6, city.getLat());
 		pstmt.setString(7, city.getNoaccents());
 		pstmt.setString(8, city.getAlternativenames());
 		pstmt.setString(9, city.getMicroregion());
 		pstmt.setString(10, city.getMesoregion());
+		System.out.println(sql);
 		boolean resp = ( pstmt.executeUpdate() > 0 );
 		con.close();
 		return resp;
@@ -284,10 +317,10 @@ public class ControleCidade {
 		int tp = ( (Tipo.equalsIgnoreCase("NUMBER")) ? 0 : (Tipo.equalsIgnoreCase("VARCHAR2")) ? 1 : 2 );
 		switch (tp) {
 		case 0:
-				sql += " "+ Coluna +" = ?";
+				sql += " " + Coluna + " = " + Valor;
 			break;
 		case 1:
-				sql += " " + Coluna +" like '%?%'";
+				sql += " " + Coluna + " like '%" + Valor + "%'";
 			break;
 		default:
 			break;
@@ -295,7 +328,7 @@ public class ControleCidade {
 		
 		System.out.println(sql);
 		pstmt = con.prepareStatement(sql);
-		pstmt.setString(1, Valor);
+		//pstmt.setString(1, Valor);
 		rs = pstmt.executeQuery();
 		lCidades = new ArrayList<Cidades>();
 		while(rs.next()){
@@ -303,8 +336,8 @@ public class ControleCidade {
 					                      rs.getString("uf"),
 					                      rs.getString("name"),
 					                      rs.getString("capital"),
-					                      rs.getInt("lon"),
-					                      rs.getInt("lat"),
+					                      rs.getString("lon"),
+					                      rs.getString("lat"),
 					                      rs.getString("no_accents"),
 					                      rs.getString("alternative_names"),
 					                      rs.getString("microregion"),
@@ -319,10 +352,10 @@ public class ControleCidade {
 	public List<ObjetoAuxiliar> QuantidadePorColuna(String Coluna) throws ClassNotFoundException, SQLException{
 		lObjAuxilioCidades = new ArrayList<ObjetoAuxiliar>();
 		con = db.Conectar();
-		String sql = "SELECT COUNT(COUNT(DISTINCT ?)) AS QUANTIDADE FROM CIDADES " + 
+		String sql = "SELECT COUNT(COUNT(DISTINCT "+Coluna+")) AS QUANTIDADE FROM CIDADES " + 
 					 "GROUP BY " + Coluna;
 		pstmt = con.prepareStatement(sql);
-		pstmt.setString(1, Coluna);
+		//pstmt.setString(1, Coluna);
 		rs = pstmt.executeQuery();
 		while(rs.next()) {
 			lObjAuxilioCidades.add(new ObjetoAuxiliar(null, rs.getInt("QUANTIDADE"), 0, Coluna, null));
@@ -347,7 +380,7 @@ public class ControleCidade {
 	};
 	
 	//12. Dentre todas as cidades, obter as duas cidades mais distantes uma da outra com base na localização (distância em KM em linha reta);
-			public List<Cidades> CidadesDistantes() throws ClassNotFoundException, SQLException{
+	public List<Cidades> CidadesDistantes() throws ClassNotFoundException, SQLException{
 				con = db.Conectar();
 				int dist = 0;
 				int x1 = 0;
@@ -390,6 +423,8 @@ public class ControleCidade {
 						System.out.println(sql);
 					}
 				};
+				
+				rs.close();
 				
 				sql = "SELECT * FROM CIDADES ORDER BY uf ";
 				pstmt = con.prepareStatement(sql);
@@ -497,8 +532,8 @@ public class ControleCidade {
 				                      rsa.getString("uf"),
 				                      rsa.getString("name"),
 				                      rsa.getString("capital"),
-				                      rsa.getInt("lon"),
-				                      rsa.getInt("lat"),
+				                      rsa.getString("lon"),
+				                      rsa.getString("lat"),
 				                      rsa.getString("no_accents"),
 				                      rsa.getString("alternative_names"),
 				                      rsa.getString("microregion"),
@@ -509,6 +544,22 @@ public class ControleCidade {
 				con.commit();
 				con.close();
 				return lCidades;
+			};
+			
+	//lista de estados	
+	public  List<ObjetoAuxiliar> ListaEstados() throws ClassNotFoundException, SQLException{
+				
+				con = db.Conectar();
+				String sql = "SELECT DISTINCT UF FROM CIDADES ORDER BY UF ASC";
+				
+				pstmt = con.prepareStatement(sql);
+				rs = pstmt.executeQuery();
+				lObjAuxilioCidades = new ArrayList<ObjetoAuxiliar>();
+				while(rs.next()){
+					lObjAuxilioCidades.add(new ObjetoAuxiliar(rs.getString("UF"),0, 0 , null, null));
+				}
+				con.close();
+				return lObjAuxilioCidades;
 			};
 	
 }
